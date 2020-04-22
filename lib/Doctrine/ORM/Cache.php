@@ -193,4 +193,13 @@ interface Cache
      * @return string|null
      */
     public function getTimestampRegionKeySpecifier(): ?string;
+
+    /**
+     * Updates the timestamp cache for a given entity, invalidating all the queries associated with it.
+     * With optionals specifier we can update only a subset of the queries for the given entity.
+     *
+     * @param string      $className
+     * @param string|null $specifier
+     */
+    public function updateTimestampCache(string $className, string $specifier = null): void;
 }
