@@ -61,6 +61,11 @@ class DefaultCache implements Cache
     private $defaultQueryCache;
 
     /**
+     * @var string
+     */
+    private $timestampRegionSpecifier;
+
+    /**
      * {@inheritdoc}
      */
     public function __construct(EntityManagerInterface $em)
@@ -289,6 +294,41 @@ class DefaultCache implements Cache
         return $this->queryCaches[$regionName];
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    public function setTimestampRegionKeySpecifier(string $specifier): void
+    {
+        $this->timestampRegionSpecifier = $specifier;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function getTimestampRegionKeySpecifier(): ?string
+    {
+        return $this->timestampRegionSpecifier;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function updateTimestampCache(string $className, string $specifier = null): void
+    {
+        $metadata  = $this->em->getClassMetadata($className);
+        $persister = $this->uow->getEntityPersister($metadata->rootEntityName);
+
+        if ( ! ($persister instanceof CachedPersister)) {
+            return;
+        }
+
+        $specifier = $specifier ?? Cache::DEFAULT_TIMESTAMP_KEY_SPECIFIER;
+
+        $this->cacheFactory->getTimestampRegion()->update(
+            new TimestampCacheKey($metadata->rootEntityName . '_' . $specifier)
+        );
+    }
+
      /**
      * @param \Doctrine\ORM\Mapping\ClassMetadata $metadata   The entity metadata.
      * @param mixed                               $identifier The entity identifier.
@@ -338,5 +378,4 @@ class DefaultCache implements Cache
 
         return [$metadata->identifier[0] => $identifier];
     }
-
 }
